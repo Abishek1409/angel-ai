@@ -22,8 +22,7 @@ const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
 const SYSTEM_PROMPT = `You are Angel AI. Answer questions directly using the provided context. 
 Do not use greetings (like Hello, Hi, or Greetings) in your responses. 
 Do not include meta-comments, filler phrases, or introductory sentences (e.g., "Here is the answer", "Based on the context").
-Provide the answer immediately.
-If the context is insufficient, use Google Search to find the answer.`;
+Provide the answer immediately and be as helpful as possible using your knowledge.`;
 
 const AngelAI = () => {
   const [messages, setMessages] = useState([
@@ -93,14 +92,13 @@ const AngelAI = () => {
       User Question: ${userMessage.content}
       `;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: finalPrompt }] }],
-          tools: [{ google_search: {} }] 
+          contents: [{ parts: [{ text: finalPrompt }] }]
         })
       });
 
@@ -293,8 +291,8 @@ const AngelAI = () => {
             </div>
             
             <div className="flex items-center gap-2 text-cyan-400 bg-cyan-950/30 border border-cyan-900/50 px-3 py-1.5 rounded-full">
-                <Globe size={12} />
-                <span className="text-[10px] font-mono tracking-wider uppercase">Net-Link Active</span>
+                <Cpu size={12} />
+                <span className="text-[10px] font-mono tracking-wider uppercase">RAG Mode</span>
             </div>
         </div>
 
