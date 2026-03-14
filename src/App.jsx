@@ -17,7 +17,7 @@ import {
   Cpu
 } from 'lucide-react';
 
-const apiKey = import.meta.env.VITE_GOOGLE_API_KEY; 
+const apiKey = import.meta.env.VITE_NVIDIA_API_KEY;
 
 const SYSTEM_PROMPT = `You are Angel AI. Answer questions directly using the provided context. 
 Do not use greetings (like Hello, Hi, or Greetings) in your responses. 
@@ -82,34 +82,37 @@ const AngelAI = () => {
 
     try {
       const context = retrieveContext(input);
-      
-      const finalPrompt = `
-      ${SYSTEM_PROMPT}
 
-      Here is the available Context/Knowledge Base:
-      ${context ? context : "No specific documents provided. Use Google Search if needed."}
+      const systemMessage = {
+        role: 'system',
+        content: `${SYSTEM_PROMPT}\n\nHere is the available Context/Knowledge Base:\n${context ? context : 'No specific documents provided. Answer using your own knowledge.'}`
+      };
 
-      User Question: ${userMessage.content}
-      `;
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
+      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: finalPrompt }] }]
+          model: 'nvidia/llama-3.1-nemotron-70b-instruct',
+          messages: [
+            systemMessage,
+            { role: 'user', content: userMessage.content }
+          ],
+          temperature: 0.5,
+          max_tokens: 1024,
         })
       });
 
       const data = await response.json();
 
-      if (data.error) {
-        throw new Error(data.error.message);
+      if (!response.ok) {
+        throw new Error(data.detail || data.message || 'NVIDIA API error');
       }
 
-      const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
-      
+      const botResponse = data.choices?.[0]?.message?.content || 'No response generated.';
+
       setMessages(prev => [...prev, { role: 'assistant', content: botResponse }]);
 
     } catch (error) {
