@@ -17,7 +17,6 @@ import {
   Cpu
 } from 'lucide-react';
 
-const apiKey = import.meta.env.VITE_NVIDIA_API_KEY;
 
 const SYSTEM_PROMPT = `You are Angel AI. Answer questions directly using the provided context. 
 Do not use greetings (like Hello, Hi, or Greetings) in your responses. 
@@ -88,27 +87,23 @@ const AngelAI = () => {
         content: `${SYSTEM_PROMPT}\n\nHere is the available Context/Knowledge Base:\n${context ? context : 'No specific documents provided. Answer using your own knowledge.'}`
       };
 
-      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'nvidia/llama-3.1-nemotron-70b-instruct',
           messages: [
             systemMessage,
             { role: 'user', content: userMessage.content }
           ],
-          temperature: 0.5,
-          max_tokens: 1024,
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || data.message || 'NVIDIA API error');
+        throw new Error(data.message || 'Server error');
       }
 
       const botResponse = data.choices?.[0]?.message?.content || 'No response generated.';
